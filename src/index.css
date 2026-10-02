@@ -1,0 +1,324 @@
+/* نظام تصميم فاتح وأنيق ومريح للعين لمصنع رواء الخليج للعبايات */
+
+:root {
+  /* ألوان فاتحة وعصرية مريحة للعين */
+  --bg-main: #f8fafc;
+  --bg-card: #ffffff;
+  --bg-card-subtle: #f1f5f9;
+  --bg-input: #ffffff;
+  
+  /* ألوان هادئة وراقية (بدون ألوان الذكاء الاصطناعي الفاقعة) */
+  --primary: #0f766e;        /* تيل / زمردي داكن هادئ */
+  --primary-light: #14b8a6;
+  --primary-subtle: #f0fdfa;
+  --primary-border: #ccfbf1;
+  --primary-dark: #115e59;
+
+  /* النصوص */
+  --text-dark: #0f172a;       /* كحلي فحمي داكن واضح جداً للقراءة */
+  --text-body: #334155;       /* رمادي فحمي مريح */
+  --text-muted: #64748b;
+  --text-light: #94a3b8;
+
+  /* الحالات */
+  --debt-color: #b91c1c;      /* أحمر هادئ للمديونية */
+  --debt-bg: #fef2f2;
+  --debt-border: #fecaca;
+
+  --paid-color: #15803d;      /* أخضر هادئ للدفعات والخلوص */
+  --paid-bg: #f0fdf4;
+  --paid-border: #bbf7d0;
+
+  --border-color: #e2e8f0;
+  --border-hover: #cbd5e1;
+
+  /* الخطوط */
+  --font-arabic: 'Cairo', 'Tajawal', system-ui, -apple-system, sans-serif;
+  --font-num: 'Cairo', 'Plus Jakarta Sans', system-ui, sans-serif;
+
+  /* الظلال الخفيفة */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-card: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+  
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-arabic);
+  background-color: var(--bg-main);
+  color: var(--text-body);
+  direction: rtl;
+  text-align: right;
+  min-height: 100vh;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* بطاقات لوحة التحكم الفاتحة */
+.card-clean {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+  transition: all 0.2s ease;
+}
+.card-clean:hover {
+  box-shadow: var(--shadow-lg);
+  border-color: #cbd5e1;
+}
+
+/* أزرار عصرية سهلة وواضحة */
+.btn-main {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background-color: var(--primary);
+  color: #ffffff;
+  font-family: var(--font-arabic);
+  font-weight: 700;
+  font-size: 14px;
+  padding: 9px 18px;
+  border-radius: var(--radius-md);
+  border: none;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  box-shadow: var(--shadow-sm);
+}
+.btn-main:hover {
+  background-color: var(--primary-dark);
+  transform: translateY(-1px);
+}
+
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background-color: #ffffff;
+  color: var(--text-body);
+  font-family: var(--font-arabic);
+  font-weight: 600;
+  font-size: 13.5px;
+  padding: 8px 16px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.btn-secondary:hover {
+  background-color: var(--bg-card-subtle);
+  border-color: var(--border-hover);
+  color: var(--text-dark);
+}
+
+.btn-danger-outline {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #ffffff;
+  color: var(--debt-color);
+  border: 1px solid var(--debt-border);
+  padding: 6px 12px;
+  border-radius: var(--radius-md);
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.btn-danger-outline:hover {
+  background: var(--debt-bg);
+}
+
+.btn-success-outline {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #ffffff;
+  color: var(--paid-color);
+  border: 1px solid var(--paid-border);
+  padding: 6px 12px;
+  border-radius: var(--radius-md);
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.btn-success-outline:hover {
+  background: var(--paid-bg);
+}
+
+/* شارات الحالة */
+.badge-debt {
+  background-color: var(--debt-bg);
+  color: var(--debt-color);
+  border: 1px solid var(--debt-border);
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.badge-paid {
+  background-color: var(--paid-bg);
+  color: var(--paid-color);
+  border: 1px solid var(--paid-border);
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+/* مدخلات النماذج الفاتحة */
+.clean-input, .clean-select {
+  width: 100%;
+  background-color: var(--bg-input);
+  border: 1px solid var(--border-color);
+  color: var(--text-dark);
+  padding: 10px 14px;
+  border-radius: var(--radius-md);
+  font-family: var(--font-arabic);
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.clean-input:focus, .clean-select:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.15);
+}
+.clean-input::placeholder {
+  color: var(--text-light);
+}
+
+/* جداول أنيقة وعالية الوضوح */
+.clean-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13.5px;
+  text-align: right;
+}
+.clean-table th {
+  background-color: #f8fafc;
+  color: #475569;
+  font-weight: 700;
+  padding: 12px 16px;
+  border-bottom: 2px solid var(--border-color);
+}
+.clean-table td {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border-color);
+  color: var(--text-body);
+}
+.clean-table tr:hover td {
+  background-color: #f8fafc;
+}
+
+/* نافذة المودال الفاتحة */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(15, 23, 42, 0.45);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 16px;
+}
+
+.modal-box {
+  background-color: #ffffff;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  width: 100%;
+  max-width: 820px;
+  max-height: 92vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--border-color);
+}
+
+/* ======================================================== */
+/* تصميم الفاتورة الورقية الحقيقية لمصنع "رواء الخليج للعباية الخليجي" */
+/* ======================================================== */
+.paper-invoice-sheet {
+  background: #ffffff;
+  border: 2px solid #0f172a;
+  border-radius: 4px;
+  padding: 24px 28px;
+  margin: 0 auto;
+  width: 100%;
+  max-width: 720px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  font-family: 'Cairo', 'Tajawal', sans-serif;
+  color: #0f172a;
+}
+
+.paper-table {
+  width: 100%;
+  border-collapse: collapse;
+  border: 2px solid #0f172a;
+  margin-top: 14px;
+}
+
+.paper-table th, .paper-table td {
+  border: 1px solid #0f172a;
+  padding: 8px 10px;
+  font-size: 13.5px;
+  text-align: center;
+}
+
+.paper-table th {
+  background: #f1f5f9;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+/* تنسيق الطباعة الرسمي A4 / A5 */
+@media print {
+  body {
+    background: #ffffff !important;
+    color: #000000 !important;
+    direction: rtl !important;
+  }
+  .no-print {
+    display: none !important;
+  }
+  .paper-invoice-sheet {
+    box-shadow: none !important;
+    border: 2px solid #000000 !important;
+    padding: 16px 20px !important;
+    margin: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    page-break-inside: avoid !important;
+  }
+  .paper-table {
+    border: 2px solid #000000 !important;
+  }
+  .paper-table th, .paper-table td {
+    border: 1px solid #000000 !important;
+    color: #000000 !important;
+  }
+  .paper-table th {
+    background: #f1f5f9 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+}
