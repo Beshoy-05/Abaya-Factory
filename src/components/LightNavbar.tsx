@@ -1,12 +1,15 @@
-import React, { useState, useEffect } from 'react';
-import { FileText, Users, CreditCard, Plus, TrendingUp, Cloud } from 'lucide-react';
+import { FileText, Users, CreditCard, Plus, TrendingUp, Cloud, Boxes, UserCheck, Hash } from 'lucide-react';
 import { apiService } from '../services/api';
+import abayaLogo from '../assets/abaya-logo.png';
 
 interface LightNavbarProps {
   currentTab: 'invoices' | 'customers' | 'payments' | 'new-invoice';
   setCurrentTab: (tab: 'invoices' | 'customers' | 'payments' | 'new-invoice') => void;
   onOpenNewInvoice: () => void;
   onOpenTotalSellingModal: () => void;
+  onOpenAllQuantitiesModal: () => void;
+  onOpenCustomerQuantitiesModal: () => void;
+  onOpenSpecificCodeModal: () => void;
 }
 
 export const LightNavbar: React.FC<LightNavbarProps> = ({
@@ -14,23 +17,10 @@ export const LightNavbar: React.FC<LightNavbarProps> = ({
   setCurrentTab,
   onOpenNewInvoice,
   onOpenTotalSellingModal,
+  onOpenAllQuantitiesModal,
+  onOpenCustomerQuantitiesModal,
+  onOpenSpecificCodeModal,
 }) => {
-  const [config, setConfig] = useState(apiService.getConfig());
-
-  useEffect(() => {
-    const unsub = apiService.subscribe(() => {
-      setConfig(apiService.getConfig());
-    });
-    return () => {
-      unsub();
-    };
-  }, []);
-
-  const toggleMockMode = () => {
-    const nextMock = !config.isMockMode;
-    apiService.setConfig({ isMockMode: nextMock });
-  };
-
   return (
     <header className="no-print" style={{
       background: '#ffffff',
@@ -53,18 +43,18 @@ export const LightNavbar: React.FC<LightNavbarProps> = ({
         {/* الشعار واسم المصنع */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <div style={{
-            width: '42px',
-            height: '42px',
+            width: '44px',
+            height: '44px',
             borderRadius: '10px',
-            background: 'var(--primary)',
-            color: '#ffffff',
+            background: '#ffffff',
+            border: '1.5px solid var(--border-color)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            fontWeight: 900,
-            fontSize: '20px'
+            padding: '3px',
+            boxShadow: 'var(--shadow-sm)'
           }}>
-            ر
+            <img src={abayaLogo} alt="لوجو العباية" style={{ height: '36px', objectFit: 'contain' }} />
           </div>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -156,55 +146,46 @@ export const LightNavbar: React.FC<LightNavbarProps> = ({
           </button>
         </nav>
 
-        {/* زر عمل فاتورة جديدة واستعلام مبيعات كود وحالة السيرفر */}
+        {/* أزرار الإحصائيات وعمل فاتورة جديدة */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <button
-            onClick={toggleMockMode}
-            type="button"
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              padding: '7px 12px',
-              borderRadius: '8px',
-              fontSize: '12.5px',
-              fontWeight: 700,
-              cursor: 'pointer',
-              border: config.isMockMode ? '1px solid #fcd34d' : '1px solid #86efac',
-              background: config.isMockMode ? '#fffbeb' : '#f0fdf4',
-              color: config.isMockMode ? '#b45309' : '#15803d',
-              transition: 'all 0.2s',
-            }}
-            title={
-              config.isMockMode
-                ? 'اضغط للتحويل إلى السيرفر السحابي (Live API)'
-                : `متصل بالسيرفر: ${config.baseUrl} (اضغط للتحويل إلى الوضع التجريبي)`
-            }
+            onClick={onOpenAllQuantitiesModal}
+            className="btn-secondary"
+            style={{ padding: '8px 12px', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}
+            title="استعلام إجمالي كميات وقطع كل الفواتير"
           >
-            <span
-              style={{
-                width: '8px',
-                height: '8px',
-                borderRadius: '50%',
-                background: config.isMockMode ? '#f59e0b' : '#22c55e',
-                boxShadow: config.isMockMode ? '0 0 6px #f59e0b' : '0 0 6px #22c55e',
-              }}
-            />
-            {config.isMockMode ? (
-              <span>وضع تجريبي (Mock)</span>
-            ) : (
-              <span>سيرفر حي (Live API)</span>
-            )}
+            <Boxes size={15} style={{ color: '#16a34a' }} />
+            <span>إجمالي كميات الفواتير</span>
+          </button>
+
+          <button
+            onClick={onOpenCustomerQuantitiesModal}
+            className="btn-secondary"
+            style={{ padding: '8px 12px', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}
+            title="استعلام إجمالي كميات وقطع عميل محدد"
+          >
+            <UserCheck size={15} style={{ color: '#2563eb' }} />
+            <span>إجمالي كميات عميل</span>
           </button>
 
           <button
             onClick={onOpenTotalSellingModal}
             className="btn-secondary"
-            style={{ padding: '8px 14px', fontSize: '13.5px', display: 'flex', alignItems: 'center', gap: '6px' }}
-            title="استعلام إجمالي مبيعات كود موديل عبر الـ API"
+            style={{ padding: '8px 12px', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}
+            title="استعلام إجمالي مبيعات كود موديل"
           >
             <TrendingUp size={15} style={{ color: 'var(--primary)' }} />
             <span>مبيعات كود موديل</span>
+          </button>
+
+          <button
+            onClick={onOpenSpecificCodeModal}
+            className="btn-secondary"
+            style={{ padding: '8px 12px', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}
+            title="استعلام إجمالي كميات كود موديل محدد عبر السيرفر (sum-specific-code/{itemCode})"
+          >
+            <Hash size={15} style={{ color: '#0f766e' }} />
+            <span>كمية كود محدد</span>
           </button>
 
           <button

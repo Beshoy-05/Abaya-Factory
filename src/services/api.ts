@@ -30,27 +30,12 @@ class ApiService {
   private listeners: Set<() => void> = new Set();
 
   constructor() {
-    const savedConfig = localStorage.getItem(STORAGE_PREFIX + 'config');
-    if (savedConfig) {
-      try {
-        const parsed = JSON.parse(savedConfig);
-        // Auto-migrate previous localhost or initial configurations to hosted API
-        if (!parsed.baseUrl || parsed.baseUrl.includes('localhost')) {
-          parsed.baseUrl = DEFAULT_CONFIG.baseUrl;
-          parsed.isMockMode = false;
-        }
-        this.config = { ...DEFAULT_CONFIG, ...parsed };
-      } catch {
-        this.config = DEFAULT_CONFIG;
-      }
-    } else {
-      this.config = DEFAULT_CONFIG;
-    }
-
+    this.config = {
+      baseUrl: DEFAULT_CONFIG.baseUrl,
+      isMockMode: false,
+    };
     this.config.baseUrl = this.config.baseUrl.replace(/\/+$/, '');
     localStorage.setItem(STORAGE_PREFIX + 'config', JSON.stringify(this.config));
-
-    this.initMockStore();
   }
 
   public getConfig(): ApiConfig {
@@ -136,13 +121,20 @@ class ApiService {
       if (!response.ok) {
         let errorMsg = `Server error ${response.status}: ${response.statusText}`;
         try {
-          const errData = await response.json();
-          if (errData.errors) {
-            errorMsg = Object.values(errData.errors).flat().join(', ');
-          } else if (errData.message) {
-            errorMsg = errData.message;
-          } else if (errData.title) {
-            errorMsg = errData.title;
+          const errText = await response.text();
+          if (errText) {
+            try {
+              const errData = JSON.parse(errText);
+              if (errData.errors) {
+                errorMsg = Object.values(errData.errors).flat().join(', ');
+              } else if (errData.message) {
+                errorMsg = errData.message;
+              } else if (errData.title) {
+                errorMsg = errData.title;
+              }
+            } catch {
+              errorMsg = errText;
+            }
           }
         } catch {
           // fallback text
@@ -154,7 +146,16 @@ class ApiService {
         return null as unknown as T;
       }
 
-      return (await response.json()) as T;
+      const text = await response.text();
+      if (!text || !text.trim()) {
+        return null as unknown as T;
+      }
+
+      try {
+        return JSON.parse(text) as T;
+      } catch {
+        return text as unknown as T;
+      }
     } catch (err: unknown) {
       if (!this.config.isMockMode) {
         console.warn(`[API fetch failed on ${endpoint}], you may switch to Demo Mode`, err);
@@ -327,6 +328,42 @@ class ApiService {
       return total;
     }
     return this.request<number>(`/api/Invoices/total-selling/${encodeURIComponent(itemCode)}`);
+  }
+
+  async getSumOfQuantitiesOfAllInvoices(): Promise<number> {
+    if (this.config.isMockMode) {
+      const invoices = this.getMockInvoices();
+      return invoices.reduce((sum, inv) => {
+        return sum + (inv.items || []).reduce((s, it) => s + (Number(it.quantity) || 0), 0);
+      }, 0);
+    }
+    return this.request<number>('/api/Invoices/sum-quantities');
+  }
+
+  async getSumOfQuantitiesOfOneCustomer(customerId: number): Promise<number> {
+    if (this.config.isMockMode) {
+      const invoices = this.getMockInvoices().filter((inv) => inv.customerId === customerId);
+      return invoices.reduce((sum, inv) => {
+        return sum + (inv.items || []).reduce((s, it) => s + (Number(it.quantity) || 0), 0);
+      }, 0);
+    }
+    return this.request<number>(`/api/Invoices/sum-quantities/${customerId}`);
+  }
+
+  async getSumOfSpecificCode(itemCode: string): Promise<number> {
+    if (this.config.isMockMode) {
+      const invoices = this.getMockInvoices();
+      let total = 0;
+      for (const inv of invoices) {
+        for (const item of inv.items || []) {
+          if (item.itemCode && item.itemCode.toLowerCase().trim() === itemCode.toLowerCase().trim()) {
+            total += Number(item.quantity) || 0;
+          }
+        }
+      }
+      return total;
+    }
+    return this.request<number>(`/api/Invoices/sum-specific-code/${encodeURIComponent(itemCode.trim())}`);
   }
 
   async createInvoice(dto: InvoiceCreateDto): Promise<InvoiceDto> {
@@ -517,6 +554,21 @@ class ApiService {
 
       payments.unshift(newPayment);
       this.saveMockPayments(payments);
+
+      // Apply payment to latest invoice of this customer in mock mode
+      const invoices = this.getMockInvoices();
+      const customerInvoices = invoices.filter((i) => i.customerId === dto.customerId);
+      if (customerInvoices.length > 0) {
+        customerInvoices.sort((a, b) => new Date(b.invoiceDate).getTime() - new Date(a.invoiceDate).getTime() || b.id - a.id);
+        const latest = customerInvoices[0];
+        const invIndex = invoices.findIndex((i) => i.id === latest.id);
+        if (invIndex !== -1) {
+          invoices[invIndex].paidAmount = Number((invoices[invIndex].paidAmount + amount).toFixed(2));
+          invoices[invIndex].remainingAmount = Number((invoices[invIndex].totalDue - invoices[invIndex].paidAmount).toFixed(2));
+          this.saveMockInvoices(invoices);
+        }
+      }
+
       this.notifyChange();
       return newPayment;
     }

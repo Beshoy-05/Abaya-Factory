@@ -1,13 +1,16 @@
 import React, { useState } from 'react';
 import type { InvoiceDto } from '../types/api';
-import { Search, Plus, Printer, Trash2, FileText, CheckCircle2, CreditCard } from 'lucide-react';
+import { Search, Plus, Printer, FileText, CheckCircle2, CreditCard, Boxes, Hash } from 'lucide-react';
 
 interface LightInvoicesViewProps {
   invoices: InvoiceDto[];
   onOpenNewInvoice: () => void;
   onPrintInvoice: (invoice: InvoiceDto) => void;
-  onDeleteInvoice: (invoice: InvoiceDto) => void;
+  onDeleteInvoice?: (invoice: InvoiceDto) => void;
   onNewPaymentForCustomer?: (customerId: number) => void;
+  onOpenAllQuantitiesModal?: () => void;
+  onSelectCustomerInvoices?: (customerId: number) => void;
+  onOpenSpecificCodeModal?: (code?: string) => void;
 }
 
 export const LightInvoicesView: React.FC<LightInvoicesViewProps> = ({
@@ -16,10 +19,49 @@ export const LightInvoicesView: React.FC<LightInvoicesViewProps> = ({
   onPrintInvoice,
   onDeleteInvoice,
   onNewPaymentForCustomer,
+  onOpenAllQuantitiesModal,
+  onSelectCustomerInvoices,
+  onOpenSpecificCodeModal,
 }) => {
   const [search, setSearch] = useState('');
 
-  const filtered = invoices.filter(
+  // Map customerId -> latest invoice id (سداد أو دفعة تكون على آخر فاتورة بس)
+  const latestInvoiceIdMap = React.useMemo(() => {
+    const map = new Map<number, number>();
+    invoices.forEach((inv) => {
+      const currentLatestId = map.get(inv.customerId);
+      if (!currentLatestId) {
+        map.set(inv.customerId, inv.id);
+      } else {
+        const currentLatestInv = invoices.find((i) => i.id === currentLatestId);
+        if (currentLatestInv) {
+          const isNewer =
+            new Date(inv.invoiceDate).getTime() > new Date(currentLatestInv.invoiceDate).getTime() ||
+            (new Date(inv.invoiceDate).getTime() === new Date(currentLatestInv.invoiceDate).getTime() && inv.id > currentLatestInv.id);
+          if (isNewer) {
+            map.set(inv.customerId, inv.id);
+          }
+        }
+      }
+    });
+    return map;
+  }, [invoices]);
+
+  // إجمالي عدد فواتير كل عميل
+  const customerInvoicesCountMap = React.useMemo(() => {
+    const map = new Map<number, number>();
+    invoices.forEach((inv) => {
+      map.set(inv.customerId, (map.get(inv.customerId) || 0) + 1);
+    });
+    return map;
+  }, [invoices]);
+
+  // إظهار آخر فاتورة فقط لكل عميل (استبعاد الفواتير السابقة تماماً من الجدول الرئيسي)
+  const latestInvoicesOnly = React.useMemo(() => {
+    return invoices.filter((inv) => latestInvoiceIdMap.get(inv.customerId) === inv.id);
+  }, [invoices, latestInvoiceIdMap]);
+
+  const filtered = latestInvoicesOnly.filter(
     (i) =>
       i.customerName.toLowerCase().includes(search.toLowerCase()) ||
       String(i.id).includes(search) ||
@@ -49,17 +91,64 @@ export const LightInvoicesView: React.FC<LightInvoicesViewProps> = ({
           />
         </div>
 
-        <button
-          onClick={onOpenNewInvoice}
-          className="btn-main"
-          style={{ padding: '8px 18px', fontSize: '14px' }}
-        >
-          <Plus size={16} />
-          <span>عمل فاتورة جديدة</span>
-        </button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+          {onOpenAllQuantitiesModal && (
+            <button
+              onClick={onOpenAllQuantitiesModal}
+              className="btn-secondary"
+              style={{ padding: '8px 14px', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}
+              title="استعلام إجمالي كميات وقطع كل الفواتير"
+            >
+              <Boxes size={15} style={{ color: '#16a34a' }} />
+              <span>إجمالي كميات الفواتير</span>
+            </button>
+          )}
+
+          {onOpenSpecificCodeModal && (
+            <button
+              onClick={() => onOpenSpecificCodeModal()}
+              className="btn-secondary"
+              style={{ padding: '8px 14px', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}
+              title="استعلام إجمالي كميات كود موديل محدد (sum-specific-code/{itemCode})"
+            >
+              <Hash size={15} style={{ color: '#0f766e' }} />
+              <span>كمية كود محدد</span>
+            </button>
+          )}
+
+          <button
+            onClick={onOpenNewInvoice}
+            className="btn-main"
+            style={{ padding: '8px 18px', fontSize: '14px' }}
+          >
+            <Plus size={16} />
+            <span>عمل فاتورة جديدة</span>
+          </button>
+        </div>
       </div>
 
-      {/* جدول الفواتير */}
+      {/* تنبيه توضيحي بأن الجدول يعرض آخر فاتورة فقط لكل عميل */}
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+          background: '#f8fafc',
+          border: '1px solid #e2e8f0',
+          padding: '8px 14px',
+          borderRadius: '6px',
+          marginBottom: '14px',
+          fontSize: '12.5px',
+          color: 'var(--text-muted)',
+        }}
+      >
+        <span style={{ display: 'inline-block', width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#0284c7', flexShrink: 0 }} />
+        <span>
+          يتم عرض <strong>آخر فاتورة فقط</strong> لكل عميل — اضغط على أي فاتورة لفتح سجل كافة فواتيره السابقة والمدفوعات بالكامل.
+        </span>
+      </div>
+
+      {/* جدول الفواتير — يقتصر على آخر فاتورة لكل عميل */}
       {filtered.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>
           <FileText size={36} style={{ color: 'var(--text-light)', marginBottom: '8px' }} />
@@ -70,28 +159,99 @@ export const LightInvoicesView: React.FC<LightInvoicesViewProps> = ({
           <table className="clean-table">
             <thead>
               <tr>
-                <th style={{ width: '70px', textAlign: 'center' }}>رقم</th>
+                <th style={{ width: '80px', textAlign: 'center' }}>رقم</th>
                 <th>المطلوب من السيد (العميل)</th>
                 <th>التاريخ</th>
                 <th>الأصناف</th>
                 <th>قيمة الفاتورة</th>
                 <th>رصيد سابق</th>
-                <th>الدفعة المسددة</th>
                 <th>المتبقي المستحق</th>
-                <th style={{ textAlign: 'center', width: '200px' }}>طباعة وإجراءات</th>
+                <th style={{ textAlign: 'center', width: '200px' }}>طباعة وسداد</th>
               </tr>
             </thead>
             <tbody>
               {filtered.map((inv) => {
                 const isPaid = inv.remainingAmount <= 0;
+                const totalInvoicesForThisCustomer = customerInvoicesCountMap.get(inv.customerId) || 1;
+
                 return (
-                  <tr key={inv.id}>
-                    <td style={{ textAlign: 'center', fontWeight: 800, color: 'var(--primary)' }}>
-                      #{inv.id}
+                  <tr
+                    key={inv.id}
+                    onClick={() => onSelectCustomerInvoices && onSelectCustomerInvoices(inv.customerId)}
+                    style={{
+                      cursor: onSelectCustomerInvoices ? 'pointer' : 'default',
+                      transition: 'background-color 0.15s ease',
+                    }}
+                    title={onSelectCustomerInvoices ? `اضغط هنا لفتح سجل كافة فواتير ${inv.customerName} (${totalInvoicesForThisCustomer} فواتير)` : undefined}
+                    onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#f8fafc')}
+                    onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '')}
+                  >
+                    <td style={{ textAlign: 'center' }}>
+                      <div
+                        style={{
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'center',
+                          gap: '2px',
+                        }}
+                      >
+                        <span style={{ fontWeight: 800, color: 'var(--primary)', fontSize: '14px' }}>
+                          #{inv.id}
+                        </span>
+                        <span
+                          style={{
+                            background: '#fef3c7',
+                            color: '#b45309',
+                            border: '1px solid #fde68a',
+                            padding: '1px 5px',
+                            borderRadius: '4px',
+                            fontSize: '10px',
+                            fontWeight: 800,
+                          }}
+                        >
+                          آخر فاتورة
+                        </span>
+                      </div>
                     </td>
 
                     <td style={{ fontWeight: 800, color: 'var(--text-dark)' }}>
-                      {inv.customerName}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                        <span
+                          style={{
+                            fontSize: '14.5px',
+                            color: 'var(--text-dark)',
+                          }}
+                        >
+                          {inv.customerName}
+                        </span>
+
+                        {onSelectCustomerInvoices && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onSelectCustomerInvoices(inv.customerId);
+                            }}
+                            style={{
+                              background: '#eff6ff',
+                              border: '1px solid #bfdbfe',
+                              borderRadius: '6px',
+                              color: '#1d4ed8',
+                              fontSize: '11.5px',
+                              fontWeight: 800,
+                              padding: '2px 8px',
+                              cursor: 'pointer',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '4px',
+                              transition: 'all 0.15s ease',
+                            }}
+                            title={`فتح جميع فواتير ${inv.customerName} (${totalInvoicesForThisCustomer} فواتير مسجلة بالكامل)`}
+                          >
+                            <FileText size={12} />
+                            <span>جميع فواتيره ({totalInvoicesForThisCustomer})</span>
+                          </button>
+                        )}
+                      </div>
                     </td>
 
                     <td style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
@@ -109,10 +269,35 @@ export const LightInvoicesView: React.FC<LightInvoicesViewProps> = ({
                               padding: '2px 6px',
                               borderRadius: '4px',
                               fontSize: '11.5px',
-                              fontWeight: 600
+                              fontWeight: 600,
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '4px',
                             }}
                           >
-                            {it.quantity}x {it.itemName}
+                            <span>{it.quantity}x {it.itemName}</span>
+                            {it.itemCode && onOpenSpecificCodeModal && (
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  onOpenSpecificCodeModal(it.itemCode);
+                                }}
+                                style={{
+                                  background: '#ccfbf1',
+                                  color: '#0f766e',
+                                  border: '1px solid #99f6e4',
+                                  borderRadius: '3px',
+                                  padding: '1px 4px',
+                                  fontSize: '10.5px',
+                                  fontWeight: 800,
+                                  cursor: 'pointer',
+                                }}
+                                title={`استعلام إجمالي مبيعات كود #${it.itemCode} عبر السيرفر`}
+                              >
+                                #{it.itemCode}
+                              </button>
+                            )}
                           </span>
                         ))}
                       </div>
@@ -126,10 +311,6 @@ export const LightInvoicesView: React.FC<LightInvoicesViewProps> = ({
                       {inv.previousBalance.toFixed(0)} ج
                     </td>
 
-                    <td style={{ color: 'var(--paid-color)', fontWeight: 700 }}>
-                      {inv.paidAmount > 0 ? `${inv.paidAmount.toFixed(0)} ج` : '—'}
-                    </td>
-
                     <td>
                       <span className={isPaid ? 'badge-paid' : 'badge-debt'}>
                         {inv.remainingAmount.toFixed(0)} جنيه
@@ -139,7 +320,10 @@ export const LightInvoicesView: React.FC<LightInvoicesViewProps> = ({
                     <td style={{ textAlign: 'center' }}>
                       <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
                         <button
-                          onClick={() => onPrintInvoice(inv)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onPrintInvoice(inv);
+                          }}
                           title="طباعة الفاتورة الرسمية"
                           className="btn-main"
                           style={{ padding: '5px 10px', fontSize: '12.5px' }}
@@ -148,10 +332,14 @@ export const LightInvoicesView: React.FC<LightInvoicesViewProps> = ({
                           <span>طباعة</span>
                         </button>
 
+                        {/* السداد متاح على آخر فاتورة للعميل */}
                         {onNewPaymentForCustomer && (
                           <button
-                            onClick={() => onNewPaymentForCustomer(inv.customerId)}
-                            title="تسجيل دفعة مسددة لهذا العميل"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onNewPaymentForCustomer(inv.customerId);
+                            }}
+                            title="تسجيل دفعة مسددة على آخر فاتورة لهذا العميل"
                             className="btn-success-outline"
                             style={{ padding: '5px 8px', fontSize: '12px' }}
                           >
@@ -159,20 +347,6 @@ export const LightInvoicesView: React.FC<LightInvoicesViewProps> = ({
                             <span>سداد دفعة</span>
                           </button>
                         )}
-
-                        <button
-                          onClick={() => onDeleteInvoice(inv)}
-                          title="حذف الفاتورة"
-                          style={{
-                            background: 'none',
-                            border: 'none',
-                            color: '#ef4444',
-                            cursor: 'pointer',
-                            padding: '4px'
-                          }}
-                        >
-                          <Trash2 size={16} />
-                        </button>
                       </div>
                     </td>
                   </tr>

@@ -1,14 +1,23 @@
 import React from 'react';
 import type { InvoiceDto } from '../types/api';
 import { Printer, X, CreditCard } from 'lucide-react';
+import rawaaLogo from '../assets/rawaa-logo.png';
+import abayaLogo from '../assets/abaya-logo.png';
+import fatooraBadge from '../assets/fatoora-badge.png';
 
 interface PaperInvoicePrintProps {
   invoice: InvoiceDto;
   onClose: () => void;
   onRecordPayment?: (customerId: number) => void;
+  isLatestInvoice?: boolean;
 }
 
-export const PaperInvoicePrint: React.FC<PaperInvoicePrintProps> = ({ invoice, onClose, onRecordPayment }) => {
+export const PaperInvoicePrint: React.FC<PaperInvoicePrintProps> = ({
+  invoice,
+  onClose,
+  onRecordPayment,
+  isLatestInvoice = true,
+}) => {
   const handlePrint = () => {
     window.print();
   };
@@ -42,10 +51,23 @@ export const PaperInvoicePrint: React.FC<PaperInvoicePrintProps> = ({ invoice, o
             <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
               (فاتورة رقم #{invoice.id})
             </span>
+            {isLatestInvoice && (
+              <span style={{
+                background: '#fef3c7',
+                color: '#b45309',
+                border: '1px solid #fde68a',
+                padding: '1px 6px',
+                borderRadius: '4px',
+                fontSize: '11px',
+                fontWeight: 700,
+              }}>
+                آخر فاتورة
+              </span>
+            )}
           </div>
 
           <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-            {onRecordPayment && (
+            {onRecordPayment && isLatestInvoice && (
               <button
                 type="button"
                 onClick={() => {
@@ -81,49 +103,114 @@ export const PaperInvoicePrint: React.FC<PaperInvoicePrintProps> = ({ invoice, o
 
         {/* جسم الفاتورة الورقية الحقيقية كما في الصورة */}
         <div style={{ padding: '24px', overflowY: 'auto' }}>
-          <div className="paper-invoice-sheet">
-            {/* الترويسة الرئيسية */}
+          <div className="paper-invoice-sheet" style={{ position: 'relative', overflow: 'hidden' }}>
+            {/* علامة مائية لشعار العباية في خلفية الورقة */}
+            <div style={{
+              position: 'absolute',
+              top: '50%',
+              left: '50%',
+              transform: 'translate(-50%, -50%)',
+              opacity: 0.035,
+              pointerEvents: 'none',
+              zIndex: 0
+            }}>
+              <img src={abayaLogo} alt="" style={{ height: '360px', objectFit: 'contain' }} />
+            </div>
+
+            {/* الترويسة الرئيسية المطابقة لدفتر فواتير رواء الخليج الحقيقي */}
             <div style={{
               display: 'flex',
               justifyContent: 'space-between',
               alignItems: 'center',
-              borderBottom: '2px solid #0f172a',
-              paddingBottom: '14px',
-              marginBottom: '12px'
+              borderBottom: '2.5px solid #0f172a',
+              paddingBottom: '12px',
+              marginBottom: '12px',
+              position: 'relative',
+              zIndex: 1,
+              gap: '12px'
             }}>
-              {/* يمين: اسم المصنع */}
-              <div style={{ textAlign: 'right' }}>
-                <div style={{ fontSize: '24px', fontWeight: 900, color: '#0f172a', lineHeight: 1.2 }}>
-                  رواء الخليج
-                </div>
-                <div style={{ fontSize: '14px', fontWeight: 700, color: '#334155' }}>
-                  للعباية الخليجي
+              {/* يمين: خط وشعار "رواء الخليج للعباية الخليجي" الحقيقي المستخرج من الفاتورة */}
+              <div style={{ textAlign: 'right', display: 'flex', alignItems: 'center' }}>
+                <img
+                  src={rawaaLogo}
+                  alt="رواء الخليج للعباية الخليجي"
+                  style={{
+                    height: '62px',
+                    maxWidth: '230px',
+                    objectFit: 'contain',
+                    display: 'block'
+                  }}
+                />
+              </div>
+
+              {/* وسط: شعار العباية الحقيقي + كلمة فاتورة الأصلية */}
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '14px'
+              }}>
+                <img
+                  src={abayaLogo}
+                  alt="لوجو العباية"
+                  style={{
+                    height: '64px',
+                    width: 'auto',
+                    objectFit: 'contain',
+                    display: 'block'
+                  }}
+                />
+
+                <div style={{ textAlign: 'center' }}>
+                  <img
+                    src={fatooraBadge}
+                    alt="فاتورة"
+                    style={{
+                      height: '32px',
+                      objectFit: 'contain',
+                      display: 'block',
+                      margin: '0 auto'
+                    }}
+                  />
+                  <div style={{
+                    fontSize: '13px',
+                    fontWeight: 900,
+                    color: '#0f172a',
+                    marginTop: '2px'
+                  }}>
+                    رقم: #{invoice.id}
+                  </div>
                 </div>
               </div>
 
-              {/* وسط: كلمة فاتورة وأيقونة العباية */}
-              <div style={{ textAlign: 'center' }}>
-                {/* رسم توضيحي لعباية خليجية أنيقة مطابق للرسم في الفاتورة */}
-                <svg width="42" height="52" viewBox="0 0 100 120" fill="#0f172a" style={{ display: 'inline-block' }}>
-                  <circle cx="50" cy="18" r="12" />
-                  <path d="M35,32 L65,32 L85,115 L15,115 Z" />
-                  <path d="M48,32 L48,115" stroke="#ffffff" strokeWidth="2.5" />
-                </svg>
-                <div style={{ fontSize: '20px', fontWeight: 900, color: '#0f172a', marginTop: '2px' }}>
-                  فـــاتـورة
-                </div>
-                <div style={{ fontSize: '11px', color: '#64748b' }}>
-                  رقم: {invoice.id}
-                </div>
-              </div>
-
-              {/* يسار: بيانات المسؤول ورقم الهاتف */}
+              {/* يسار: بيانات المسؤول ورقم الهاتف والواتساب */}
               <div style={{ textAlign: 'left', direction: 'ltr' }}>
-                <div style={{ fontSize: '15px', fontWeight: 800, color: '#0f172a' }}>
+                <div style={{ fontSize: '15px', fontWeight: 900, color: '#0f172a', fontFamily: 'Cairo, sans-serif' }}>
                   م / محمد صبري
                 </div>
-                <div style={{ fontSize: '13px', fontWeight: 700, color: '#0f766e', marginTop: '3px' }}>
-                  01031424301 ✆
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  fontSize: '13.5px',
+                  fontWeight: 800,
+                  color: '#15803d',
+                  marginTop: '3px'
+                }}>
+                  <span style={{ fontSize: '15px' }}>📱</span>
+                  <span>01031424301</span>
+                  <span style={{
+                    background: '#25d366',
+                    color: '#ffffff',
+                    borderRadius: '50%',
+                    width: '18px',
+                    height: '18px',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '11px',
+                    fontWeight: 900
+                  }}>✆</span>
                 </div>
               </div>
             </div>
@@ -221,51 +308,15 @@ export const PaperInvoicePrint: React.FC<PaperInvoicePrintProps> = ({ invoice, o
                     </td>
                   </tr>
                   <tr>
-                    <td style={{ border: '1px solid #0f172a', padding: '6px 10px', background: '#f8fafc' }}>
+                    <td style={{ border: '2px solid #0f172a', padding: '8px 10px', background: '#fef2f2', color: '#b91c1c' }}>
                       المجموع المستحق
                     </td>
-                    <td style={{ border: '1px solid #0f172a', padding: '6px 10px', textAlign: 'center', fontSize: '16px', fontWeight: 900 }}>
-                      {invoice.totalDue.toFixed(0)}
-                    </td>
-                  </tr>
-                  <tr>
-                    <td style={{ border: '1px solid #0f172a', padding: '6px 10px', color: '#15803d', background: '#f0fdf4' }}>
-                      الدفعة (المسدد)
-                    </td>
-                    <td style={{ border: '1px solid #0f172a', padding: '6px 10px', textAlign: 'center', color: '#15803d', fontSize: '15px' }}>
-                      {invoice.paidAmount > 0 ? invoice.paidAmount.toFixed(0) : '0'}
-                    </td>
-                  </tr>
-                  <tr>
-                    <td style={{ border: '2px solid #0f172a', padding: '8px 10px', background: '#fef2f2', color: '#b91c1c' }}>
-                      اجمالي المتبقي
-                    </td>
                     <td style={{ border: '2px solid #0f172a', padding: '8px 10px', textAlign: 'center', fontSize: '18px', fontWeight: 900, color: '#b91c1c' }}>
-                      {invoice.remainingAmount.toFixed(0)}
+                      {(invoice.remainingAmount > 0 ? invoice.remainingAmount : invoice.totalDue).toFixed(0)}
                     </td>
                   </tr>
                 </tbody>
               </table>
-            </div>
-
-            {/* توقيع وملاحظات في أسفل الورقة */}
-            <div style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              marginTop: '30px',
-              paddingTop: '16px',
-              borderTop: '1px solid #cbd5e1',
-              fontSize: '12.5px',
-              fontWeight: 700,
-              color: '#475569'
-            }}>
-              <div>
-                توقيع المستلم: .......................................
-              </div>
-              <div>
-                إدارة المصنع: م / محمد صبري
-              </div>
             </div>
           </div>
         </div>

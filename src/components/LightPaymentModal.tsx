@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import type { CustomerDto, PaymentCreateDto } from '../types/api';
-import { X, CreditCard, AlertCircle } from 'lucide-react';
+import type { CustomerDto, PaymentCreateDto, InvoiceDto } from '../types/api';
+import { X, CreditCard, AlertCircle, FileText } from 'lucide-react';
 
 interface LightPaymentModalProps {
   customers: CustomerDto[];
+  invoices?: InvoiceDto[];
   initialCustomerId?: number;
   onClose: () => void;
   onSubmit: (dto: PaymentCreateDto) => Promise<void>;
@@ -11,6 +12,7 @@ interface LightPaymentModalProps {
 
 export const LightPaymentModal: React.FC<LightPaymentModalProps> = ({
   customers,
+  invoices,
   initialCustomerId,
   onClose,
   onSubmit,
@@ -20,6 +22,12 @@ export const LightPaymentModal: React.FC<LightPaymentModalProps> = ({
   );
 
   const currentCustomer = customers.find((c) => c.id === selectedCustomerId);
+
+  // Find latest invoice for this customer (السداد يكون على آخر فاتورة بس)
+  const customerInvoices = (invoices || [])
+    .filter((inv) => inv.customerId === selectedCustomerId)
+    .sort((a, b) => new Date(b.invoiceDate).getTime() - new Date(a.invoiceDate).getTime() || b.id - a.id);
+  const lastInvoice = customerInvoices.length > 0 ? customerInvoices[0] : null;
 
   const [amount, setAmount] = useState<number>(
     currentCustomer && currentCustomer.balance > 0 ? currentCustomer.balance : 1000
@@ -113,6 +121,25 @@ export const LightPaymentModal: React.FC<LightPaymentModalProps> = ({
                 </option>
               ))}
             </select>
+
+            {/* إشعار بأن السداد يخص آخر فاتورة فقط */}
+            <div style={{
+              marginTop: '8px',
+              padding: '8px 12px',
+              background: '#f0fdf4',
+              border: '1px solid #bbf7d0',
+              borderRadius: '6px',
+              fontSize: '12px',
+              color: '#15803d',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px'
+            }}>
+              <FileText size={14} style={{ color: '#16a34a' }} />
+              <div>
+                <strong>تطبيق السداد:</strong> {lastInvoice ? `على آخر فاتورة صادرة (فاتورة #${lastInvoice.id} — المتبقي عليها: ${lastInvoice.remainingAmount.toFixed(0)} ج)` : 'سداد مباشر يخصم من رصيد العميل'}
+              </div>
+            </div>
           </div>
 
           <div style={{ marginBottom: '20px' }}>

@@ -1,20 +1,25 @@
 import React from 'react';
 import type { CustomerDto, InvoiceDto, PaymentDto } from '../types/api';
-import { DollarSign, FileText, CheckCircle, Users } from 'lucide-react';
+import { DollarSign, FileText, CheckCircle, Users, Boxes } from 'lucide-react';
 
 interface LightStatsProps {
   customers: CustomerDto[];
   invoices: InvoiceDto[];
   payments: PaymentDto[];
+  onOpenAllQuantities?: () => void;
 }
 
-export const LightStats: React.FC<LightStatsProps> = ({ customers, invoices, payments }) => {
+export const LightStats: React.FC<LightStatsProps> = ({ customers, invoices, payments, onOpenAllQuantities }) => {
   const totalDebt = customers
     .filter((c) => c.balance > 0)
     .reduce((sum, c) => sum + c.balance, 0);
 
   const totalSales = invoices.reduce((sum, i) => sum + i.grandTotalAmount, 0);
   const totalCollected = payments.reduce((sum, p) => sum + p.amount, 0);
+  const totalPieces = invoices.reduce(
+    (sum, i) => sum + (i.items || []).reduce((s, it) => s + (Number(it.quantity) || 0), 0),
+    0
+  );
 
   return (
     <div style={{
@@ -120,6 +125,40 @@ export const LightStats: React.FC<LightStatsProps> = ({ customers, invoices, pay
         </div>
         <div style={{ fontSize: '11.5px', color: 'var(--text-light)', marginTop: '6px' }}>
           مكاتب وبوتيكات مسجلة بالمصنع
+        </div>
+      </div>
+
+      {/* إجمالي كميات القطع المباعة (API: sum-quantities) */}
+      <div
+        className="card-clean"
+        style={{
+          padding: '16px 20px',
+          borderRight: '4px solid #16a34a',
+          cursor: onOpenAllQuantities ? 'pointer' : 'default',
+        }}
+        onClick={onOpenAllQuantities}
+        title={onOpenAllQuantities ? 'اضغط لعرض تفاصيل واستعلام إجمالي الكميات' : undefined}
+      >
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div>
+            <div style={{ fontSize: '12.5px', color: 'var(--text-muted)', fontWeight: 700 }}>
+              إجمالي كميات القطع (الفواتير)
+            </div>
+            <div style={{ fontSize: '24px', fontWeight: 900, color: '#16a34a', marginTop: '4px' }}>
+              {totalPieces} <span style={{ fontSize: '14px', fontWeight: 700 }}>قطعة عباية</span>
+            </div>
+          </div>
+          <div style={{
+            background: '#dcfce7',
+            color: '#16a34a',
+            padding: '8px',
+            borderRadius: '8px'
+          }}>
+            <Boxes size={20} />
+          </div>
+        </div>
+        <div style={{ fontSize: '11.5px', color: '#15803d', marginTop: '6px', fontWeight: 600 }}>
+          {onOpenAllQuantities ? 'اضغط لعرض تفاصيل الكميات ↗' : `موزعة على ${invoices.length} فاتورة`}
         </div>
       </div>
     </div>

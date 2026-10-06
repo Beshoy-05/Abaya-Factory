@@ -20,6 +20,9 @@ import { LightStatementModal } from './components/LightStatementModal';
 import { LightPaymentModal } from './components/LightPaymentModal';
 import { LightCustomerModal } from './components/LightCustomerModal';
 import { TotalSellingWidget } from './components/TotalSellingWidget';
+import { CustomerInvoicesModal } from './components/CustomerInvoicesModal';
+import { QuantitiesModal } from './components/QuantitiesModal';
+import { SpecificCodeModal } from './components/SpecificCodeModal';
 import { ToastContainer, type ToastMessage } from './components/Toast';
 
 export const App: React.FC = () => {
@@ -34,11 +37,17 @@ export const App: React.FC = () => {
   // Modals
   const [invoiceToPrint, setInvoiceToPrint] = useState<InvoiceDto | null>(null);
   const [statementCustomer, setStatementCustomer] = useState<CustomerDto | null>(null);
+  const [customerForInvoicesModal, setCustomerForInvoicesModal] = useState<CustomerDto | null>(null);
   const [paymentModalOpen, setPaymentModalOpen] = useState(false);
   const [paymentModalCustomerId, setPaymentModalCustomerId] = useState<number | undefined>(undefined);
   const [customerModalOpen, setCustomerModalOpen] = useState(false);
   const [customerToEdit, setCustomerToEdit] = useState<CustomerDto | null>(null);
   const [totalSellingModalOpen, setTotalSellingModalOpen] = useState(false);
+  const [quantitiesModalOpen, setQuantitiesModalOpen] = useState(false);
+  const [quantitiesModalTab, setQuantitiesModalTab] = useState<'all' | 'customer' | 'code'>('all');
+  const [quantitiesModalCustomerId, setQuantitiesModalCustomerId] = useState<number | undefined>(undefined);
+  const [specificCodeModalOpen, setSpecificCodeModalOpen] = useState(false);
+  const [specificCodeToQuery, setSpecificCodeToQuery] = useState<string>('117');
 
   // Toasts
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
@@ -94,8 +103,15 @@ export const App: React.FC = () => {
       await apiService.deleteInvoice(inv.id);
       addToast('success', 'تم حذف الفاتورة', `تم حذف الفاتورة #${inv.id} وتعديل رصيد العميل.`);
       await fetchData();
+      if (customerForInvoicesModal && customerForInvoicesModal.id === inv.customerId) {
+        const updatedCusts = await apiService.getCustomers();
+        const updatedCust = updatedCusts.find((c) => c.id === inv.customerId);
+        if (updatedCust) {
+          setCustomerForInvoicesModal(updatedCust);
+        }
+      }
     } catch (err: any) {
-      addToast('warning', 'فشل الحذف', err.message);
+      addToast('warning', 'فشل الحذف', err.message || 'حدث خطأ أثناء حذف الفاتورة');
     }
   };
 
@@ -156,9 +172,38 @@ export const App: React.FC = () => {
     if (inv) setInvoiceToPrint(inv);
   };
 
+  const handleOpenCustomerInvoices = (customer: CustomerDto) => {
+    setCustomerForInvoicesModal(customer);
+  };
+
+  const handleOpenCustomerInvoicesById = (customerId: number) => {
+    const cust = customers.find((c) => c.id === customerId);
+    if (cust) {
+      setCustomerForInvoicesModal(cust);
+    }
+  };
+
+  const handleOpenAllQuantities = () => {
+    setQuantitiesModalTab('all');
+    setQuantitiesModalOpen(true);
+  };
+
+  const handleOpenCustomerQuantities = (customerId?: number) => {
+    setQuantitiesModalTab('customer');
+    setQuantitiesModalCustomerId(customerId);
+    setQuantitiesModalOpen(true);
+  };
+
+  const handleOpenSpecificCode = (code?: string) => {
+    if (code) {
+      setSpecificCodeToQuery(code);
+    }
+    setSpecificCodeModalOpen(true);
+  };
+
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-      {/* شريط التنقل العلوي الفاتح والأنيق */}
+      {/* شريط التنقل العلوي الفاتح والأنيق مع أزرار استعلام الكميات */}
       <LightNavbar
         currentTab={currentTab}
         setCurrentTab={setCurrentTab}
@@ -167,16 +212,20 @@ export const App: React.FC = () => {
           setCurrentTab('new-invoice');
         }}
         onOpenTotalSellingModal={() => setTotalSellingModalOpen(true)}
+        onOpenAllQuantitiesModal={handleOpenAllQuantities}
+        onOpenCustomerQuantitiesModal={() => handleOpenCustomerQuantities()}
+        onOpenSpecificCodeModal={() => handleOpenSpecificCode()}
       />
 
       {/* المحتوى الرئيسي */}
       <main style={{ flex: 1, maxWidth: '1280px', width: '100%', margin: '0 auto', padding: '24px 20px' }}>
-        {/* ملخص إحصائي خفيف ومريح للعين */}
+        {/* ملخص إحصائي خفيف ومريح للعين مع بطاقة إجمالي قطع الفواتير */}
         {currentTab !== 'new-invoice' && (
           <LightStats
             customers={customers}
             invoices={invoices}
             payments={payments}
+            onOpenAllQuantities={handleOpenAllQuantities}
           />
         )}
 
@@ -191,7 +240,7 @@ export const App: React.FC = () => {
           />
         )}
 
-        {/* عرض سجل الفواتير مع أزرار الطباعة */}
+        {/* عرض سجل الفواتير مع أزرار الطباعة وزر إجمالي كميات الفواتير */}
         {currentTab === 'invoices' && (
           <LightInvoicesView
             invoices={invoices}
@@ -205,18 +254,23 @@ export const App: React.FC = () => {
               setPaymentModalCustomerId(custId);
               setPaymentModalOpen(true);
             }}
+            onOpenAllQuantitiesModal={handleOpenAllQuantities}
+            onSelectCustomerInvoices={handleOpenCustomerInvoicesById}
+            onOpenSpecificCodeModal={handleOpenSpecificCode}
           />
         )}
 
-        {/* عرض العملاء والمديونيات */}
+        {/* عرض العملاء والمديونيات مع عمود آخر فاتورة وزر إجمالي كميات عميل */}
         {currentTab === 'customers' && (
           <LightCustomersView
             customers={customers}
+            invoices={invoices}
             onOpenNewCustomer={() => {
               setCustomerToEdit(null);
               setCustomerModalOpen(true);
             }}
             onSelectCustomerStatement={(c) => setStatementCustomer(c)}
+            onSelectCustomerInvoices={handleOpenCustomerInvoices}
             onNewInvoiceForCustomer={(c) => {
               setPreselectedCustomerId(c.id);
               setCurrentTab('new-invoice');
@@ -230,6 +284,7 @@ export const App: React.FC = () => {
               setCustomerModalOpen(true);
             }}
             onDeleteCustomer={handleDeleteCustomer}
+            onOpenCustomerQuantitiesModal={handleOpenCustomerQuantities}
           />
         )}
 
@@ -260,7 +315,7 @@ export const App: React.FC = () => {
             <strong>رواء الخليج للعباية الخليجي</strong> • م / محمد صبري (01031424301)
           </div>
           <div>
-            نظام إصدار الفواتير الورقية والمديونيات • متصل مع ASP.NET Core 8 Web API
+            نظام إصدار الفواتير الورقية والمديونيات • مصنع رواء الخليج
           </div>
         </div>
       </footer>
@@ -269,6 +324,14 @@ export const App: React.FC = () => {
       {invoiceToPrint && (
         <PaperInvoicePrint
           invoice={invoiceToPrint}
+          isLatestInvoice={
+            !invoices.some(
+              (i) =>
+                i.customerId === invoiceToPrint.customerId &&
+                (new Date(i.invoiceDate).getTime() > new Date(invoiceToPrint.invoiceDate).getTime() ||
+                  (new Date(i.invoiceDate).getTime() === new Date(invoiceToPrint.invoiceDate).getTime() && i.id > invoiceToPrint.id))
+            )
+          }
           onClose={() => setInvoiceToPrint(null)}
           onRecordPayment={(custId) => {
             setPaymentModalCustomerId(custId);
@@ -286,10 +349,11 @@ export const App: React.FC = () => {
         />
       )}
 
-      {/* نافذة تسجيل دفعة نقدية (سند قبض) */}
+      {/* نافذة تسجيل دفعة نقدية (سند قبض) — السداد يكون على آخر فاتورة */}
       {paymentModalOpen && (
         <LightPaymentModal
           customers={customers}
+          invoices={invoices}
           initialCustomerId={paymentModalCustomerId}
           onClose={() => setPaymentModalOpen(false)}
           onSubmit={handleSavePayment}
@@ -330,6 +394,56 @@ export const App: React.FC = () => {
             <TotalSellingWidget />
           </div>
         </div>
+      )}
+
+      {/* نافذة عرض جميع فواتير العميل في مكان واحد عند النقر على آخر فاتورة */}
+      {customerForInvoicesModal && (
+        <CustomerInvoicesModal
+          customer={customerForInvoicesModal}
+          invoices={invoices}
+          onClose={() => setCustomerForInvoicesModal(null)}
+          onPrintInvoice={(inv) => setInvoiceToPrint(inv)}
+          onDeleteInvoice={handleDeleteInvoice}
+          onNewInvoice={(c) => {
+            setCustomerForInvoicesModal(null);
+            setPreselectedCustomerId(c.id);
+            setCurrentTab('new-invoice');
+          }}
+          onNewPayment={(custId) => {
+            setPaymentModalCustomerId(custId);
+            setPaymentModalOpen(true);
+          }}
+          onOpenStatement={(c) => {
+            setCustomerForInvoicesModal(null);
+            setStatementCustomer(c);
+          }}
+        />
+      )}
+
+      {/* نافذة استعلام إجمالي الكميات (لجميع الفواتير ولعميل محدد عبر الـ API) */}
+      {quantitiesModalOpen && (
+        <QuantitiesModal
+          initialTab={quantitiesModalTab}
+          initialCustomerId={quantitiesModalCustomerId}
+          initialCode={specificCodeToQuery}
+          customers={customers}
+          invoices={invoices}
+          onClose={() => setQuantitiesModalOpen(false)}
+          onOpenCustomerInvoices={(c) => {
+            setQuantitiesModalOpen(false);
+            handleOpenCustomerInvoices(c);
+          }}
+        />
+      )}
+
+      {/* نافذة استعلام إجمالي كميات كود محدد عبر السيرفر (sum-specific-code/{itemCode}) */}
+      {specificCodeModalOpen && (
+        <SpecificCodeModal
+          initialCode={specificCodeToQuery}
+          invoices={invoices}
+          onClose={() => setSpecificCodeModalOpen(false)}
+          onOpenInvoice={(inv) => setInvoiceToPrint(inv)}
+        />
       )}
 
       {/* التنبيهات المنبثقة */}
