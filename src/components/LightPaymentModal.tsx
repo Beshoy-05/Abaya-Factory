@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import type { CustomerDto, PaymentCreateDto, InvoiceDto } from '../types/api';
 import { X, CreditCard, AlertCircle, FileText } from 'lucide-react';
+import { formatCurrency } from '../utils/format';
 
 interface LightPaymentModalProps {
   customers: CustomerDto[];
@@ -117,7 +118,7 @@ export const LightPaymentModal: React.FC<LightPaymentModalProps> = ({
             >
               {customers.map((c) => (
                 <option key={c.id} value={c.id}>
-                  {c.name} — المديونية الحالية: {c.balance.toFixed(0)} جنيه
+                  {c.name} — المديونية الحالية: {formatCurrency(c.balance)}
                 </option>
               ))}
             </select>
@@ -137,30 +138,32 @@ export const LightPaymentModal: React.FC<LightPaymentModalProps> = ({
             }}>
               <FileText size={14} style={{ color: '#16a34a' }} />
               <div>
-                <strong>تطبيق السداد:</strong> {lastInvoice ? `على آخر فاتورة صادرة (فاتورة #${lastInvoice.id} — المتبقي عليها: ${lastInvoice.remainingAmount.toFixed(0)} ج)` : 'سداد مباشر يخصم من رصيد العميل'}
+                <strong>تطبيق السداد:</strong> {lastInvoice ? `على آخر فاتورة صادرة (فاتورة #${lastInvoice.id} — المتبقي عليها: ${formatCurrency(lastInvoice.remainingAmount)})` : 'سداد مباشر يخصم من رصيد العميل'}
               </div>
             </div>
           </div>
 
-          <div style={{ marginBottom: '20px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
+          <div style={{ marginBottom: '16px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px', alignItems: 'center' }}>
               <label style={{ fontSize: '13.5px', fontWeight: 700, color: 'var(--text-dark)' }}>
-                المبلغ المسدد (جنيه):
+                المبلغ المسدد نقداً (جنيه):
               </label>
               {currentCustomer && currentCustomer.balance > 0 && (
                 <button
                   type="button"
                   onClick={() => setAmount(currentCustomer.balance)}
                   style={{
-                    background: 'none',
-                    border: 'none',
-                    color: 'var(--primary)',
+                    background: '#eff6ff',
+                    border: '1px solid #bfdbfe',
+                    borderRadius: '4px',
+                    color: '#1d4ed8',
+                    padding: '2px 8px',
                     fontSize: '12px',
-                    fontWeight: 700,
+                    fontWeight: 800,
                     cursor: 'pointer'
                   }}
                 >
-                  سداد كامل المديونية ({currentCustomer.balance.toFixed(0)} ج)
+                  سداد كامل المديونية ({formatCurrency(currentCustomer.balance)})
                 </button>
               )}
             </div>
@@ -171,10 +174,56 @@ export const LightPaymentModal: React.FC<LightPaymentModalProps> = ({
               value={amount}
               onChange={(e) => setAmount(parseFloat(e.target.value) || 0)}
               className="clean-input"
-              style={{ fontSize: '18px', fontWeight: 900, color: 'var(--paid-color)' }}
+              style={{ fontSize: '20px', fontWeight: 900, color: 'var(--paid-color)' }}
               required
             />
           </div>
+
+          {/* معاينة فورية واضحة للرصيد قبل وبعد السداد */}
+          {currentCustomer && (
+            <div style={{
+              background: '#f8fafc',
+              border: '1px solid var(--border-color)',
+              borderRadius: '8px',
+              padding: '12px 14px',
+              marginBottom: '20px'
+            }}>
+              <div style={{ fontSize: '12.5px', fontWeight: 800, color: 'var(--text-dark)', marginBottom: '8px' }}>
+                معاينة الحساب المباشرة بعد هذه الدفعة:
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', marginBottom: '4px' }}>
+                <span style={{ color: 'var(--text-muted)' }}>المديونية الحالية:</span>
+                <span style={{ fontWeight: 800, color: currentCustomer.balance > 0 ? 'var(--debt-color)' : 'var(--paid-color)' }}>
+                  {formatCurrency(currentCustomer.balance)}
+                </span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', marginBottom: '4px' }}>
+                <span style={{ color: 'var(--text-muted)' }}>المبلغ المسدد الآن:</span>
+                <span style={{ fontWeight: 800, color: 'var(--paid-color)' }}>
+                  - {formatCurrency(amount)}
+                </span>
+              </div>
+              <div style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                fontSize: '14px',
+                paddingTop: '6px',
+                borderTop: '1px dashed var(--border-color)',
+                marginTop: '4px'
+              }}>
+                <span style={{ fontWeight: 800, color: 'var(--text-dark)' }}>الرصيد المتبقي بعد السداد:</span>
+                <span style={{
+                  fontWeight: 900,
+                  fontSize: '15px',
+                  color: (currentCustomer.balance - amount) > 0 ? 'var(--debt-color)' : 'var(--paid-color)'
+                }}>
+                  {(currentCustomer.balance - amount) <= 0
+                    ? '0 ج (خالص الحساب تماماً)'
+                    : formatCurrency(currentCustomer.balance - amount)}
+                </span>
+              </div>
+            </div>
+          )}
 
           <div style={{ display: 'flex', justifyContent: 'flex-start', gap: '10px' }}>
             <button

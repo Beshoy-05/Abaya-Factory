@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import type { CustomerDto, InvoiceDto } from '../types/api';
 import { Search, Plus, FileText, CreditCard, Edit2, Trash2, UserPlus, Users, Boxes, Receipt } from 'lucide-react';
+import { formatCurrency, formatDateArabic, formatNumber } from '../utils/format';
 
 interface LightCustomersViewProps {
   customers: CustomerDto[];
@@ -121,14 +122,14 @@ export const LightCustomersView: React.FC<LightCustomersViewProps> = ({
                     </td>
 
                     <td style={{ fontWeight: 900, fontSize: '16px', color: isDebt ? 'var(--debt-color)' : isSettled ? 'var(--paid-color)' : '#0284c7' }}>
-                      {Math.abs(c.balance).toFixed(0)} جنيه
+                      {formatCurrency(Math.abs(c.balance))}
                     </td>
 
                     <td>
                       {isDebt ? (
-                        <span className="badge-debt">عليه مديونية</span>
+                        <span className="badge-debt">عليه مديونية ({formatCurrency(c.balance)})</span>
                       ) : isSettled ? (
-                        <span className="badge-paid">خالص الحساب</span>
+                        <span className="badge-paid">خالص الحساب (0 ج)</span>
                       ) : (
                         <span style={{
                           background: '#f0f9ff',
@@ -139,7 +140,7 @@ export const LightCustomersView: React.FC<LightCustomersViewProps> = ({
                           fontSize: '11.5px',
                           fontWeight: 700
                         }}>
-                          له رصيد دائن
+                          له رصيد دائن ({formatCurrency(Math.abs(c.balance))})
                         </span>
                       )}
                     </td>
@@ -168,8 +169,8 @@ export const LightCustomersView: React.FC<LightCustomersViewProps> = ({
                         >
                           <FileText size={13} style={{ color: '#d97706' }} />
                           <span>فاتورة #{lastInvoice.id}</span>
-                          <span style={{ fontSize: '11px', color: '#b45309', fontWeight: 600 }}>
-                            ({new Date(lastInvoice.invoiceDate).toLocaleDateString('ar-EG')})
+                          <span style={{ fontSize: '11px', color: '#b45309', fontWeight: 700 }}>
+                            ({formatDateArabic(lastInvoice.invoiceDate)})
                           </span>
                         </button>
                       ) : (

@@ -4,6 +4,7 @@ import { Printer, X, CreditCard } from 'lucide-react';
 import rawaaLogo from '../assets/rawaa-logo.png';
 import abayaLogo from '../assets/abaya-logo.png';
 import fatooraBadge from '../assets/fatoora-badge.png';
+import { formatNumber } from '../utils/format';
 
 interface PaperInvoicePrintProps {
   invoice: InvoiceDto;
@@ -259,10 +260,10 @@ export const PaperInvoicePrint: React.FC<PaperInvoicePrintProps> = ({
                     <td style={{ textAlign: 'right', paddingRight: '12px', fontWeight: 700 }}>
                       {item.itemName}
                     </td>
-                    <td style={{ fontWeight: 700 }}>{item.unitPrice}</td>
-                    <td style={{ fontWeight: 800 }}>{item.quantity}</td>
+                    <td style={{ fontWeight: 700 }}>{formatNumber(item.unitPrice)}</td>
+                    <td style={{ fontWeight: 800 }}>{formatNumber(item.quantity)}</td>
                     <td style={{ fontWeight: 900, fontSize: '15px' }}>
-                      {item.totalPrice.toFixed(0)}
+                      {formatNumber(item.totalPrice)}
                     </td>
                   </tr>
                 ))}
@@ -296,7 +297,7 @@ export const PaperInvoicePrint: React.FC<PaperInvoicePrintProps> = ({
                       اجمالي الفاتورة
                     </td>
                     <td style={{ border: '1px solid #0f172a', padding: '6px 10px', textAlign: 'center', fontSize: '15px' }}>
-                      {invoice.grandTotalAmount.toFixed(0)}
+                      {formatNumber(invoice.grandTotalAmount)}
                     </td>
                   </tr>
                   <tr>
@@ -304,7 +305,7 @@ export const PaperInvoicePrint: React.FC<PaperInvoicePrintProps> = ({
                       رصيــد سـابـق
                     </td>
                     <td style={{ border: '1px solid #0f172a', padding: '6px 10px', textAlign: 'center', fontSize: '15px' }}>
-                      {invoice.previousBalance.toFixed(0)}
+                      {formatNumber(invoice.previousBalance)}
                     </td>
                   </tr>
                   <tr>
@@ -312,7 +313,7 @@ export const PaperInvoicePrint: React.FC<PaperInvoicePrintProps> = ({
                       المجموع المستحق
                     </td>
                     <td style={{ border: '2px solid #0f172a', padding: '8px 10px', textAlign: 'center', fontSize: '18px', fontWeight: 900, color: '#b91c1c' }}>
-                      {(invoice.remainingAmount > 0 ? invoice.remainingAmount : invoice.totalDue).toFixed(0)}
+                      {formatNumber(invoice.remainingAmount > 0 ? invoice.remainingAmount : invoice.totalDue)}
                     </td>
                   </tr>
                 </tbody>

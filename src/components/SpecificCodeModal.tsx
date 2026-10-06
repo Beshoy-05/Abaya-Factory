@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import type { InvoiceDto } from '../types/api';
 import { apiService } from '../services/api';
 import { Hash, Search, RefreshCw, X, AlertCircle, PackageCheck, FileText, Calendar, User, Tag } from 'lucide-react';
+import { formatCurrency, formatNumber, formatPieces, formatDateArabic } from '../utils/format';
 
 interface SpecificCodeModalProps {
   initialCode?: string;
@@ -385,7 +386,7 @@ export const SpecificCodeModal: React.FC<SpecificCodeModalProps> = ({
                   margin: '8px 0',
                 }}
               >
-                <span>{sum.toLocaleString('ar-EG')}</span>
+                <span>{formatNumber(sum)}</span>
                 <span style={{ fontSize: '18px', fontWeight: 700 }}>قطعة عباية</span>
               </div>
 
@@ -446,7 +447,7 @@ export const SpecificCodeModal: React.FC<SpecificCodeModalProps> = ({
                           <td style={{ padding: '8px 12px', color: 'var(--text-muted)' }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                               <Calendar size={12} />
-                              <span>{new Date(invoice.invoiceDate).toLocaleDateString('ar-EG')}</span>
+                              <span>{formatDateArabic(invoice.invoiceDate)}</span>
                             </div>
                           </td>
                           <td style={{ padding: '8px 12px', textAlign: 'center' }}>
@@ -460,7 +461,7 @@ export const SpecificCodeModal: React.FC<SpecificCodeModalProps> = ({
                                 fontSize: '12px',
                               }}
                             >
-                              {totalQtyInInv} قطعة
+                              {formatPieces(totalQtyInInv)}
                             </span>
                           </td>
                           <td style={{ padding: '8px 12px', textAlign: 'left' }}>

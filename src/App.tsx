@@ -218,7 +218,7 @@ export const App: React.FC = () => {
       />
 
       {/* المحتوى الرئيسي */}
-      <main style={{ flex: 1, maxWidth: '1280px', width: '100%', margin: '0 auto', padding: '24px 20px' }}>
+      <main className="no-print" style={{ flex: 1, maxWidth: '1280px', width: '100%', margin: '0 auto', padding: '24px 20px' }}>
         {/* ملخص إحصائي خفيف ومريح للعين مع بطاقة إجمالي قطع الفواتير */}
         {currentTab !== 'new-invoice' && (
           <LightStats

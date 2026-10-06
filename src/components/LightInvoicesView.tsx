@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import type { InvoiceDto } from '../types/api';
 import { Search, Plus, Printer, FileText, CheckCircle2, CreditCard, Boxes, Hash } from 'lucide-react';
+import { formatCurrency, formatDateArabic, formatNumber } from '../utils/format';
 
 interface LightInvoicesViewProps {
   invoices: InvoiceDto[];
@@ -255,7 +256,7 @@ export const LightInvoicesView: React.FC<LightInvoicesViewProps> = ({
                     </td>
 
                     <td style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
-                      {new Date(inv.invoiceDate).toLocaleDateString('ar-EG')}
+                      {formatDateArabic(inv.invoiceDate)}
                     </td>
 
                     <td>
@@ -266,16 +267,17 @@ export const LightInvoicesView: React.FC<LightInvoicesViewProps> = ({
                             style={{
                               background: '#f1f5f9',
                               border: '1px solid #cbd5e1',
-                              padding: '2px 6px',
+                              padding: '3px 8px',
                               borderRadius: '4px',
-                              fontSize: '11.5px',
-                              fontWeight: 600,
+                              fontSize: '12px',
+                              fontWeight: 700,
                               display: 'inline-flex',
                               alignItems: 'center',
-                              gap: '4px',
+                              gap: '5px',
                             }}
                           >
-                            <span>{it.quantity}x {it.itemName}</span>
+                            <span style={{ color: '#0f766e', fontWeight: 800 }}>{it.quantity} قطعة</span>
+                            <span>{it.itemName}</span>
                             {it.itemCode && onOpenSpecificCodeModal && (
                               <button
                                 type="button"
@@ -288,8 +290,8 @@ export const LightInvoicesView: React.FC<LightInvoicesViewProps> = ({
                                   color: '#0f766e',
                                   border: '1px solid #99f6e4',
                                   borderRadius: '3px',
-                                  padding: '1px 4px',
-                                  fontSize: '10.5px',
+                                  padding: '1px 5px',
+                                  fontSize: '11px',
                                   fontWeight: 800,
                                   cursor: 'pointer',
                                 }}
@@ -303,17 +305,17 @@ export const LightInvoicesView: React.FC<LightInvoicesViewProps> = ({
                       </div>
                     </td>
 
-                    <td style={{ fontWeight: 800 }}>
-                      {inv.grandTotalAmount.toFixed(0)} ج
+                    <td style={{ fontWeight: 800, fontSize: '14.5px', color: 'var(--text-dark)' }}>
+                      {formatCurrency(inv.grandTotalAmount)}
                     </td>
 
-                    <td style={{ color: 'var(--text-muted)' }}>
-                      {inv.previousBalance.toFixed(0)} ج
+                    <td style={{ color: 'var(--text-muted)', fontSize: '13.5px' }}>
+                      {formatCurrency(inv.previousBalance)}
                     </td>
 
                     <td>
-                      <span className={isPaid ? 'badge-paid' : 'badge-debt'}>
-                        {inv.remainingAmount.toFixed(0)} جنيه
+                      <span className={isPaid ? 'badge-paid' : 'badge-debt'} style={{ fontSize: '13px', fontWeight: 800, padding: '4px 10px' }}>
+                        {isPaid ? 'خالص (0 ج)' : formatCurrency(inv.remainingAmount)}
                       </span>
                     </td>
 

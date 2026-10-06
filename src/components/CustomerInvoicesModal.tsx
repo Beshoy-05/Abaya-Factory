@@ -15,6 +15,7 @@ import {
   Receipt,
   Trash2
 } from 'lucide-react';
+import { formatCurrency, formatNumber, formatPieces, formatDateArabic } from '../utils/format';
 
 interface CustomerInvoicesModalProps {
   customer: CustomerDto;
@@ -223,8 +224,7 @@ export const CustomerInvoicesModal: React.FC<CustomerInvoicesModalProps> = ({
                   gap: '4px',
                 }}
               >
-                <span>{loadingQty ? '...' : displayQuantity.toLocaleString('ar-EG')}</span>
-                <span style={{ fontSize: '13px', fontWeight: 700 }}>قطعة عباية</span>
+                <span>{loadingQty ? '...' : formatPieces(displayQuantity)}</span>
               </div>
               <div style={{ fontSize: '11px', color: '#3b82f6', marginTop: '4px', fontWeight: 600 }}>
                 إجمالي القطع المسجلة للعميل
@@ -247,7 +247,7 @@ export const CustomerInvoicesModal: React.FC<CustomerInvoicesModalProps> = ({
                 <FileText size={18} style={{ color: 'var(--primary)' }} />
               </div>
               <div style={{ fontSize: '24px', fontWeight: 900, color: 'var(--text-dark)', marginTop: '4px' }}>
-                {customerInvoices.length}{' '}
+                {formatNumber(customerInvoices.length)}{' '}
                 <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-muted)' }}>فاتورة</span>
               </div>
               <div style={{ fontSize: '11px', color: 'var(--text-light)', marginTop: '4px' }}>
@@ -271,12 +271,11 @@ export const CustomerInvoicesModal: React.FC<CustomerInvoicesModalProps> = ({
                 <TrendingUp size={18} style={{ color: '#0284c7' }} />
               </div>
               <div style={{ fontSize: '24px', fontWeight: 900, color: 'var(--text-dark)', marginTop: '4px' }}>
-                {totalInvoicesAmount.toLocaleString('ar-EG')}{' '}
-                <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-muted)' }}>ج</span>
+                {formatCurrency(totalInvoicesAmount)}
               </div>
               {totalPaidInInvoices > 0 && (
                 <div style={{ fontSize: '11px', color: 'var(--text-light)', marginTop: '4px' }}>
-                  سدد منها {totalPaidInInvoices.toLocaleString('ar-EG')} ج
+                  سدد منها {formatCurrency(totalPaidInInvoices)}
                 </div>
               )}
             </div>
@@ -314,18 +313,17 @@ export const CustomerInvoicesModal: React.FC<CustomerInvoicesModalProps> = ({
                   marginTop: '4px',
                 }}
               >
-                {Math.abs(customer.balance).toLocaleString('ar-EG')}{' '}
-                <span style={{ fontSize: '13px', fontWeight: 700 }}>ج</span>
+                {formatCurrency(Math.abs(customer.balance))}
               </div>
               <div
                 style={{
                   fontSize: '11px',
                   color: customer.balance > 0 ? 'var(--debt-color)' : 'var(--paid-color)',
                   marginTop: '4px',
-                  fontWeight: 600,
+                  fontWeight: 700,
                 }}
               >
-                {customer.balance > 0 ? 'مديونية مستحقة' : 'خالص الحساب'}
+                {customer.balance > 0 ? 'مديونية مستحقة' : 'خالص الحساب تماماً'}
               </div>
             </div>
           </div>
@@ -462,7 +460,7 @@ export const CustomerInvoicesModal: React.FC<CustomerInvoicesModalProps> = ({
                         <td style={{ fontSize: '12.5px', color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                             <Calendar size={13} style={{ color: 'var(--text-light)' }} />
-                            <span>{new Date(inv.invoiceDate).toLocaleDateString('ar-EG')}</span>
+                            <span>{formatDateArabic(inv.invoiceDate)}</span>
                           </div>
                         </td>
 
@@ -474,34 +472,34 @@ export const CustomerInvoicesModal: React.FC<CustomerInvoicesModalProps> = ({
                                 style={{
                                   background: '#ffffff',
                                   border: '1px solid #cbd5e1',
-                                  padding: '2px 6px',
+                                  padding: '3px 8px',
                                   borderRadius: '4px',
-                                  fontSize: '11px',
+                                  fontSize: '11.5px',
                                   fontWeight: 700,
                                   color: 'var(--text-dark)',
                                 }}
                               >
-                                {it.quantity}x {it.itemName} ({it.unitPrice}ج)
+                                <span style={{ color: '#0f766e', fontWeight: 800 }}>{it.quantity} قطعة</span> • {it.itemName} ({formatCurrency(it.unitPrice)})
                               </span>
                             ))}
                           </div>
                         </td>
 
                         <td style={{ textAlign: 'center', fontWeight: 800, color: '#1e40af' }}>
-                          {invoicePieces} قطعة
+                          {formatPieces(invoicePieces)}
                         </td>
 
                         <td style={{ fontWeight: 800, fontSize: '14px' }}>
-                          {inv.grandTotalAmount.toLocaleString('ar-EG')} ج
+                          {formatCurrency(inv.grandTotalAmount)}
                         </td>
 
                         <td style={{ color: 'var(--text-muted)', fontSize: '12.5px' }}>
-                          {inv.previousBalance.toLocaleString('ar-EG')} ج
+                          {formatCurrency(inv.previousBalance)}
                         </td>
 
                         <td>
-                          <span className={isFullyPaid ? 'badge-paid' : 'badge-debt'}>
-                            {inv.remainingAmount.toLocaleString('ar-EG')} ج
+                          <span className={isFullyPaid ? 'badge-paid' : 'badge-debt'} style={{ fontWeight: 800 }}>
+                            {isFullyPaid ? 'خالص (0 ج)' : formatCurrency(inv.remainingAmount)}
                           </span>
                         </td>
 

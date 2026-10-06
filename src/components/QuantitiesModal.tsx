@@ -17,6 +17,7 @@ import {
   Tag,
   PackageCheck,
 } from 'lucide-react';
+import { formatCurrency, formatNumber, formatPieces, formatDateArabic } from '../utils/format';
 
 interface QuantitiesModalProps {
   initialTab?: 'all' | 'customer' | 'code';

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import type { CustomerDto, CustomerDetailDto } from '../types/api';
 import { apiService } from '../services/api';
 import { X, Printer, FileText, CheckCircle2, AlertCircle } from 'lucide-react';
+import { formatCurrency, formatNumber, formatDateArabic } from '../utils/format';
 
 interface LightStatementModalProps {
   customer: CustomerDto;
@@ -101,7 +102,7 @@ export const LightStatementModal: React.FC<LightStatementModalProps> = ({
                     صافي المديونية الحالية المستحقة:
                   </div>
                   <div style={{ fontSize: '26px', fontWeight: 900, color: details.balance > 0 ? 'var(--debt-color)' : 'var(--paid-color)' }}>
-                    {details.balance.toFixed(0)} جنيه
+                    {formatCurrency(details.balance)}
                   </div>
                 </div>
                 <div style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
@@ -132,11 +133,11 @@ export const LightStatementModal: React.FC<LightStatementModalProps> = ({
                       {details.invoices.map((inv) => (
                         <tr key={inv.id}>
                           <td style={{ fontWeight: 800 }}>#{inv.id}</td>
-                          <td>{new Date(inv.invoiceDate).toLocaleDateString('ar-EG')}</td>
-                          <td style={{ fontWeight: 800 }}>{inv.grandTotalAmount.toFixed(0)} ج</td>
-                          <td style={{ color: 'var(--paid-color)', fontWeight: 700 }}>{inv.paidAmount.toFixed(0)} ج</td>
+                          <td>{formatDateArabic(inv.invoiceDate)}</td>
+                          <td style={{ fontWeight: 800 }}>{formatCurrency(inv.grandTotalAmount)}</td>
+                          <td style={{ color: 'var(--paid-color)', fontWeight: 700 }}>{inv.paidAmount > 0 ? formatCurrency(inv.paidAmount) : '0 ج'}</td>
                           <td style={{ fontWeight: 800, color: inv.remainingAmount > 0 ? 'var(--debt-color)' : 'var(--paid-color)' }}>
-                            {inv.remainingAmount.toFixed(0)} ج
+                            {formatCurrency(inv.remainingAmount)}
                           </td>
                           <td style={{ textAlign: 'center' }}>
                             <button
@@ -179,8 +180,8 @@ export const LightStatementModal: React.FC<LightStatementModalProps> = ({
                       {details.payments.map((p) => (
                         <tr key={p.id}>
                           <td style={{ fontWeight: 800 }}>#{p.id}</td>
-                          <td>{new Date(p.paymentDate).toLocaleDateString('ar-EG')}</td>
-                          <td style={{ fontWeight: 800, color: 'var(--paid-color)' }}>{p.amount.toFixed(0)} جنيه</td>
+                          <td>{formatDateArabic(p.paymentDate)}</td>
+                          <td style={{ fontWeight: 800, color: 'var(--paid-color)' }}>{formatCurrency(p.amount)}</td>
                           <td><span className="badge-paid">مخصوم من المديونية</span></td>
                         </tr>
                       ))}

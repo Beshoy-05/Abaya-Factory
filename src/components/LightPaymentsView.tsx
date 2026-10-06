@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import type { PaymentDto } from '../types/api';
 import { Search, Plus, CreditCard, Trash2, CheckCircle } from 'lucide-react';
+import { formatCurrency, formatDateArabic } from '../utils/format';
 
 interface LightPaymentsViewProps {
   payments: PaymentDto[];
@@ -83,11 +84,11 @@ export const LightPaymentsView: React.FC<LightPaymentsViewProps> = ({
                   </td>
 
                   <td style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
-                    {new Date(p.paymentDate).toLocaleDateString('ar-EG')}
+                    {formatDateArabic(p.paymentDate)}
                   </td>
 
                   <td style={{ fontWeight: 900, fontSize: '16px', color: 'var(--paid-color)' }}>
-                    {p.amount.toFixed(0)} جنيه
+                    {formatCurrency(p.amount)}
                   </td>
 
                   <td>

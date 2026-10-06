@@ -1,6 +1,7 @@
 import React from 'react';
 import type { CustomerDto, InvoiceDto, PaymentDto } from '../types/api';
 import { DollarSign, FileText, CheckCircle, Users, Boxes } from 'lucide-react';
+import { formatCurrency, formatNumber, formatPieces } from '../utils/format';
 
 interface LightStatsProps {
   customers: CustomerDto[];
@@ -33,10 +34,10 @@ export const LightStats: React.FC<LightStatsProps> = ({ customers, invoices, pay
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>
             <div style={{ fontSize: '12.5px', color: 'var(--text-muted)', fontWeight: 700 }}>
-              إجمالي المديونية على العملاء
+              إجمالي المديونية في السوق
             </div>
             <div style={{ fontSize: '24px', fontWeight: 900, color: 'var(--debt-color)', marginTop: '4px' }}>
-              {totalDebt.toFixed(0)} <span style={{ fontSize: '14px', fontWeight: 700 }}>جنيه</span>
+              {formatCurrency(totalDebt)}
             </div>
           </div>
           <div style={{
@@ -49,7 +50,7 @@ export const LightStats: React.FC<LightStatsProps> = ({ customers, invoices, pay
           </div>
         </div>
         <div style={{ fontSize: '11.5px', color: 'var(--text-light)', marginTop: '6px' }}>
-          مستحقة لدى {customers.filter((c) => c.balance > 0).length} عميل ومكتب
+          مستحقة لدى {formatNumber(customers.filter((c) => c.balance > 0).length)} عميل ومكتب
         </div>
       </div>
 
@@ -61,7 +62,7 @@ export const LightStats: React.FC<LightStatsProps> = ({ customers, invoices, pay
               إجمالي مبيعات الفواتير
             </div>
             <div style={{ fontSize: '24px', fontWeight: 900, color: 'var(--primary)', marginTop: '4px' }}>
-              {totalSales.toFixed(0)} <span style={{ fontSize: '14px', fontWeight: 700 }}>جنيه</span>
+              {formatCurrency(totalSales)}
             </div>
           </div>
           <div style={{
@@ -74,7 +75,7 @@ export const LightStats: React.FC<LightStatsProps> = ({ customers, invoices, pay
           </div>
         </div>
         <div style={{ fontSize: '11.5px', color: 'var(--text-light)', marginTop: '6px' }}>
-          إجمالي {invoices.length} فاتورة مسجلة بالدفتر
+          إجمالي {formatNumber(invoices.length)} فاتورة مسجلة بالدفتر
         </div>
       </div>
 
@@ -86,7 +87,7 @@ export const LightStats: React.FC<LightStatsProps> = ({ customers, invoices, pay
               إجمالي المقبوضات النقدية
             </div>
             <div style={{ fontSize: '24px', fontWeight: 900, color: 'var(--paid-color)', marginTop: '4px' }}>
-              {totalCollected.toFixed(0)} <span style={{ fontSize: '14px', fontWeight: 700 }}>جنيه</span>
+              {formatCurrency(totalCollected)}
             </div>
           </div>
           <div style={{
@@ -99,7 +100,7 @@ export const LightStats: React.FC<LightStatsProps> = ({ customers, invoices, pay
           </div>
         </div>
         <div style={{ fontSize: '11.5px', color: 'var(--text-light)', marginTop: '6px' }}>
-          تم تحصيلها في {payments.length} سند قبض نقدي
+          تم تحصيلها في {formatNumber(payments.length)} سند قبض نقدي
         </div>
       </div>
 
@@ -111,7 +112,7 @@ export const LightStats: React.FC<LightStatsProps> = ({ customers, invoices, pay
               العملاء والمكاتب المسجلة
             </div>
             <div style={{ fontSize: '24px', fontWeight: 900, color: 'var(--text-dark)', marginTop: '4px' }}>
-              {customers.length} <span style={{ fontSize: '14px', fontWeight: 700 }}>عميل</span>
+              {formatNumber(customers.length)} <span style={{ fontSize: '14px', fontWeight: 700 }}>عميل</span>
             </div>
           </div>
           <div style={{
@@ -145,7 +146,7 @@ export const LightStats: React.FC<LightStatsProps> = ({ customers, invoices, pay
               إجمالي كميات القطع (الفواتير)
             </div>
             <div style={{ fontSize: '24px', fontWeight: 900, color: '#16a34a', marginTop: '4px' }}>
-              {totalPieces} <span style={{ fontSize: '14px', fontWeight: 700 }}>قطعة عباية</span>
+              {formatPieces(totalPieces)}
             </div>
           </div>
           <div style={{
@@ -158,9 +159,10 @@ export const LightStats: React.FC<LightStatsProps> = ({ customers, invoices, pay
           </div>
         </div>
         <div style={{ fontSize: '11.5px', color: '#15803d', marginTop: '6px', fontWeight: 600 }}>
-          {onOpenAllQuantities ? 'اضغط لعرض تفاصيل الكميات ↗' : `موزعة على ${invoices.length} فاتورة`}
+          {onOpenAllQuantities ? 'اضغط لعرض تفاصيل الكميات ↗' : `موزعة على ${formatNumber(invoices.length)} فاتورة`}
         </div>
       </div>
     </div>
   );
 };
+

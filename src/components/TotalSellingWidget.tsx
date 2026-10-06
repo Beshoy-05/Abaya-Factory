@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { apiService } from '../services/api';
 import { Search, TrendingUp, AlertCircle, Sparkles } from 'lucide-react';
+import { formatCurrency } from '../utils/format';
 
 interface TotalSellingWidgetProps {
   initialCode?: string;
@@ -155,15 +156,14 @@ export const TotalSellingWidget: React.FC<TotalSellingWidgetProps> = ({
           </div>
 
           <div style={{
-            fontSize: '18px',
+            fontSize: '20px',
             fontWeight: 900,
             color: 'var(--primary)',
             display: 'flex',
             alignItems: 'center',
             gap: '4px'
           }}>
-            <span>{totalSelling.toFixed(0)}</span>
-            <span style={{ fontSize: '13px', fontWeight: 700 }}>جنيه مصري</span>
+            <span>{formatCurrency(totalSelling)}</span>
           </div>
         </div>
       )}

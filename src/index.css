@@ -292,33 +292,101 @@ body {
 
 /* تنسيق الطباعة الرسمي A4 / A5 */
 @media print {
-  body {
+  @page {
+    size: A4 portrait;
+    margin: 8mm 10mm;
+  }
+
+  html, body {
     background: #ffffff !important;
     color: #000000 !important;
     direction: rtl !important;
+    height: auto !important;
+    min-height: auto !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: visible !important;
   }
+
+  /* إخفاء التطبيق والخلفية بالكامل حتى لا تحجز صفحات في الطباعة */
+  header,
+  nav,
+  main,
+  footer,
   .no-print {
     display: none !important;
   }
+
+  /* تحويل المودال إلى عنصر عادي وليس fixed لمنع المتصفح من تكراره على كل صفحة */
+  .modal-overlay {
+    position: static !important;
+    inset: auto !important;
+    background: transparent !important;
+    backdrop-filter: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    display: block !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: auto !important;
+    overflow: visible !important;
+    z-index: auto !important;
+  }
+
+  /* إخفاء أي مودال آخر بالخلفية لا يحتوي على الفاتورة */
+  .modal-overlay:not(:has(.paper-invoice-sheet)):not(:has(.printable-area)) {
+    display: none !important;
+  }
+
+  .modal-box {
+    position: static !important;
+    border: none !important;
+    box-shadow: none !important;
+    max-width: 100% !important;
+    max-height: none !important;
+    width: 100% !important;
+    height: auto !important;
+    overflow: visible !important;
+    background: transparent !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    display: block !important;
+  }
+
+  .modal-box > div {
+    padding: 0 !important;
+    overflow: visible !important;
+  }
+
+  /* ورقة الفاتورة المصممة — صفحة واحدة فقط */
   .paper-invoice-sheet {
     box-shadow: none !important;
     border: 2px solid #000000 !important;
     padding: 16px 20px !important;
-    margin: 0 !important;
+    margin: 0 auto !important;
     width: 100% !important;
     max-width: 100% !important;
     page-break-inside: avoid !important;
+    break-inside: avoid !important;
+    page-break-after: avoid !important;
+    break-after: avoid !important;
   }
+
   .paper-table {
     border: 2px solid #000000 !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
   }
+
   .paper-table th, .paper-table td {
     border: 1px solid #000000 !important;
     color: #000000 !important;
   }
+
   .paper-table th {
     background: #f1f5f9 !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
   }
 }
+

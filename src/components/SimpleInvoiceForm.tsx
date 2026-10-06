@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import type { CustomerDto, InvoiceCreateDto, InvoiceItemCreateDto } from '../types/api';
 import { Plus, Trash2, Printer, ArrowRight, UserPlus, AlertCircle, TrendingUp } from 'lucide-react';
+import { formatCurrency, formatNumber, formatPieces } from '../utils/format';
 
 interface SimpleInvoiceFormProps {
   customers: CustomerDto[];
@@ -224,7 +225,7 @@ export const SimpleInvoiceForm: React.FC<SimpleInvoiceFormProps> = ({
             >
               {customers.map((c) => (
                 <option key={c.id} value={c.id}>
-                  {c.name} — رصيده السابق: {c.balance.toFixed(0)} جنيه
+                  {c.name} — رصيده السابق: {formatCurrency(c.balance)}
                 </option>
               ))}
             </select>
@@ -235,7 +236,7 @@ export const SimpleInvoiceForm: React.FC<SimpleInvoiceFormProps> = ({
               <span>
                 رصيد العميل الحالي (المديونية السابقة):{' '}
                 <strong style={{ color: currentCustomer.balance > 0 ? 'var(--debt-color)' : 'var(--paid-color)', fontSize: '14px' }}>
-                  {currentCustomer.balance.toFixed(0)} جنيه
+                  {formatCurrency(currentCustomer.balance)}
                 </strong>
               </span>
             </div>
@@ -334,7 +335,7 @@ export const SimpleInvoiceForm: React.FC<SimpleInvoiceFormProps> = ({
 
                     {/* جنيه (الإجمالي) */}
                     <td style={{ fontWeight: 900, fontSize: '15px', color: 'var(--text-dark)', textAlign: 'center' }}>
-                      {((Number(item.quantity) || 0) * (Number(item.unitPrice) || 0)).toFixed(0)}
+                      {formatCurrency((Number(item.quantity) || 0) * (Number(item.unitPrice) || 0))}
                     </td>
 
                     {/* حذف */}
@@ -435,7 +436,7 @@ export const SimpleInvoiceForm: React.FC<SimpleInvoiceFormProps> = ({
                     اجمالي الفاتورة
                   </td>
                   <td style={{ border: '1px solid #cbd5e1', padding: '7px 12px', textAlign: 'center', fontSize: '16px' }}>
-                    {grandTotalAmount.toFixed(0)} جنيه
+                    {formatCurrency(grandTotalAmount)}
                   </td>
                 </tr>
                 <tr>
@@ -443,7 +444,7 @@ export const SimpleInvoiceForm: React.FC<SimpleInvoiceFormProps> = ({
                     رصيــد سـابـق
                   </td>
                   <td style={{ border: '1px solid #cbd5e1', padding: '7px 12px', textAlign: 'center', fontSize: '16px' }}>
-                    {previousBalance.toFixed(0)} جنيه
+                    {formatCurrency(previousBalance)}
                   </td>
                 </tr>
                 <tr>
@@ -451,7 +452,7 @@ export const SimpleInvoiceForm: React.FC<SimpleInvoiceFormProps> = ({
                     المجموع المستحق
                   </td>
                   <td style={{ border: '1px solid #cbd5e1', padding: '7px 12px', textAlign: 'center', fontSize: '17px', fontWeight: 900 }}>
-                    {totalDue.toFixed(0)} جنيه
+                    {formatCurrency(totalDue)}
                   </td>
                 </tr>
                 <tr>
@@ -459,7 +460,7 @@ export const SimpleInvoiceForm: React.FC<SimpleInvoiceFormProps> = ({
                     الدفعة (المسدد)
                   </td>
                   <td style={{ border: '1px solid #cbd5e1', padding: '7px 12px', textAlign: 'center', color: 'var(--paid-color)', fontSize: '16px' }}>
-                    {paidAmount > 0 ? paidAmount.toFixed(0) : '0'} جنيه
+                    {paidAmount > 0 ? formatCurrency(paidAmount) : '0 ج'}
                   </td>
                 </tr>
                 <tr>
@@ -467,7 +468,7 @@ export const SimpleInvoiceForm: React.FC<SimpleInvoiceFormProps> = ({
                     اجمالي المتبقي
                   </td>
                   <td style={{ border: '2px solid #0f172a', padding: '9px 12px', textAlign: 'center', fontSize: '19px', fontWeight: 900, color: 'var(--debt-color)' }}>
-                    {remainingAmount.toFixed(0)} جنيه
+                    {formatCurrency(remainingAmount)}
                   </td>
                 </tr>
               </tbody>
