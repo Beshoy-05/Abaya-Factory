@@ -1,4 +1,5 @@
-import { FileText, Users, CreditCard, Plus, TrendingUp, Cloud, Boxes, UserCheck, Hash } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { FileText, Users, CreditCard, Plus, TrendingUp, Boxes, UserCheck, Hash, Wifi, WifiOff, Download, RefreshCw } from 'lucide-react';
 import { apiService } from '../services/api';
 import abayaLogo from '../assets/abaya-logo.png';
 
@@ -21,6 +22,45 @@ export const LightNavbar: React.FC<LightNavbarProps> = ({
   onOpenCustomerQuantitiesModal,
   onOpenSpecificCodeModal,
 }) => {
+  const [isOffline, setIsOffline] = useState(apiService.isOperatingOffline());
+  const [pendingCount, setPendingCount] = useState(apiService.getPendingCount());
+  const [isSyncing, setIsSyncing] = useState(apiService.isSyncInProgress());
+
+  useEffect(() => {
+    const unsub = apiService.subscribe(() => {
+      setIsOffline(apiService.isOperatingOffline());
+      setPendingCount(apiService.getPendingCount());
+      setIsSyncing(apiService.isSyncInProgress());
+    });
+    return unsub;
+  }, []);
+
+  const handleSync = async () => {
+    const result = await apiService.syncPendingQueue();
+    if (result.syncedCount > 0) {
+      alert(`تمت مزامنة ورفع ${result.syncedCount} عملية إلى السيرفر بنجاح ✅`);
+    } else if (result.errors.length > 0) {
+      alert(`تعذرت المزامنة: تأكد من اتصال الإنترنت بالسيرفر أولاً.`);
+    }
+  };
+
+  const handleExportBackup = () => {
+    const jsonStr = apiService.exportBackup();
+    const blob = new Blob([jsonStr], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `نسخة_احتياطية_رواء_الخليج_${new Date().toISOString().slice(0, 10)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const toggleOfflineMode = () => {
+    const next = !isOffline;
+    apiService.setOfflineMode(next);
+    setIsOffline(next);
+  };
+
   return (
     <header className="no-print" style={{
       background: '#ffffff',
@@ -40,8 +80,8 @@ export const LightNavbar: React.FC<LightNavbarProps> = ({
         flexWrap: 'wrap',
         gap: '14px'
       }}>
-        {/* الشعار واسم المصنع */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+        {/* الشعار واسم المصنع وحالة الاتصال */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
           <div style={{
             width: '44px',
             height: '44px',
@@ -71,6 +111,64 @@ export const LightNavbar: React.FC<LightNavbarProps> = ({
               <span style={{ direction: 'ltr', fontWeight: 600 }}>01031424301 ✆</span>
             </div>
           </div>
+
+          {/* شارة حالة الاتصال (أونلاين / أوفلاين) */}
+          <button
+            onClick={toggleOfflineMode}
+            title={isOffline ? 'يعمل بدون إنترنت (محلياً على الكمبيوتر). اضغط للمحاولة عبر السيرفر' : 'متصل بالسيرفر المركزي. اضغط للتحويل إلى الوضع المحلي بدون نت'}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '4px 10px',
+              borderRadius: '20px',
+              fontSize: '11.5px',
+              fontWeight: 700,
+              cursor: 'pointer',
+              border: isOffline ? '1px solid #fed7aa' : '1px solid #bbf7d0',
+              background: isOffline ? '#fff7ed' : '#f0fdf4',
+              color: isOffline ? '#c2410c' : '#15803d',
+              transition: 'all 0.2s ease',
+            }}
+          >
+            {isOffline ? (
+              <>
+                <WifiOff size={13} style={{ color: '#ea580c' }} />
+                <span>وضع محلي (أوفلاين)</span>
+              </>
+            ) : (
+              <>
+                <Wifi size={13} style={{ color: '#16a34a' }} />
+                <span>متصل بالسيرفر (أونلاين)</span>
+              </>
+            )}
+          </button>
+
+          {/* زر مزامنة العمليات المعلقة (لو عمل فواتير بدون نت) */}
+          {pendingCount > 0 && (
+            <button
+              onClick={handleSync}
+              disabled={isSyncing}
+              title="توجد عمليات تم إجراؤها بدون نت. اضغط لرفعها وحفظها على السيرفر الآن"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '4px 11px',
+                borderRadius: '20px',
+                fontSize: '11.5px',
+                fontWeight: 700,
+                cursor: isSyncing ? 'not-allowed' : 'pointer',
+                border: '1px solid #93c5fd',
+                background: '#eff6ff',
+                color: '#1d4ed8',
+                boxShadow: '0 1px 3px rgba(29, 78, 216, 0.15)',
+              }}
+            >
+              <RefreshCw size={12} style={{ animation: isSyncing ? 'spin 1s linear infinite' : 'none' }} />
+              <span>{isSyncing ? 'جاري المزامنة...' : `مزامنة للسيرفر (${pendingCount})`}</span>
+            </button>
+          )}
         </div>
 
         {/* أزرار التبويب الرئيسية الفاتحة والمريحة */}
@@ -186,6 +284,16 @@ export const LightNavbar: React.FC<LightNavbarProps> = ({
           >
             <Hash size={15} style={{ color: '#0f766e' }} />
             <span>كمية كود محدد</span>
+          </button>
+
+          <button
+            onClick={handleExportBackup}
+            className="btn-secondary"
+            style={{ padding: '8px 12px', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}
+            title="حفظ نسخة احتياطية من كل الحسابات والفواتير والعملاء على جهازك"
+          >
+            <Download size={15} style={{ color: '#0284c7' }} />
+            <span>نسخ احتياطي</span>
           </button>
 
           <button
